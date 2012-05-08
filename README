@@ -18,9 +18,9 @@ gcc -o bcp bcp.c
 Usage
 -----
 
-To make file availabe for copying: ./bcp filename
+To take file availabe for copying: ./bcp filename
 
-To recieve the file: ./bcp
+To receive the file: ./bcp
 
 
 
