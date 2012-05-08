@@ -15,18 +15,11 @@
 #include <sys/wait.h>
 #include <signal.h>
 
-#define MYPORT "4950"    // the port users will be connecting to
-#define SERVERPORT 4950    // the port users will be connecting to
-
-#define BCP_CODE 3141593
-#define BCP_TCP_PORT 10789
-
-
-#define BACKLOG 10     // how many pending connections queue will hold
-
-#define MAXBUFLEN 100
-
-#define MAXDATASIZE 100 // max number of bytes we can get at once
+#define BROADCAST_PORT 4950   // default udp port
+#define BCP_CODE 3141593      // have a unique code to verify broadcast
+#define BCP_TCP_PORT 10789    // default tcp port
+#define BACKLOG 10            // how many pending connections queue will hold
+#define MAXBUFLEN 100         // buffer size for packets
 
 // get sockaddr, IPv4 or IPv6:
 void *get_in_addr(struct sockaddr *sa)
@@ -54,7 +47,11 @@ void listener(char *ip, int *port)
   hints.ai_socktype = SOCK_DGRAM;
   hints.ai_flags = AI_PASSIVE; // use my IP
 
-  if ((rv = getaddrinfo(NULL, MYPORT, &hints, &servinfo)) != 0) {
+  // todo: don't be dumb about this..
+  char port_s[100];
+  snprintf(port_s, 100, "%d", BROADCAST_PORT);
+
+  if ((rv = getaddrinfo(NULL, port_s, &hints, &servinfo)) != 0) {
     fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
     exit(1);
   }
@@ -138,7 +135,7 @@ void broadcaster()
   }
 
   their_addr.sin_family = AF_INET;     // host byte order
-  their_addr.sin_port = htons(SERVERPORT); // short, network byte order
+  their_addr.sin_port = htons(BROADCAST_PORT); // short, network byte order
   their_addr.sin_addr = *((struct in_addr *)he->h_addr);
   memset(their_addr.sin_zero, '\0', sizeof their_addr.sin_zero);
 
@@ -244,7 +241,7 @@ void server(int port)
             s, sizeof s);
   printf("Incoming connection from: %s\n", s);
 
-  numbytes = recv(new_fd, buf, MAXDATASIZE, 0);
+  numbytes = recv(new_fd, buf, MAXBUFLEN, 0);
 
   filename_size = 0;
   memcpy(&filename_size, buf, sizeof(int));
@@ -259,7 +256,7 @@ void server(int port)
     exit(1);
   }
 
-  while((numbytes = recv(new_fd, buf, MAXDATASIZE, 0)) > 0) {
+  while((numbytes = recv(new_fd, buf, MAXBUFLEN, 0)) > 0) {
     fwrite(&buf, 1, numbytes, ft);
   }
 
@@ -272,7 +269,7 @@ void server(int port)
 void client(char *ip, int *port, char *filename)
 {
   int sockfd;//, numbytes;
-  char buf[MAXDATASIZE];
+  char buf[MAXBUFLEN];
   struct addrinfo hints, *servinfo, *p;
   int rv;
   char s[INET6_ADDRSTRLEN];
