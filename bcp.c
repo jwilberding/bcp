@@ -263,6 +263,7 @@ void server(int port)
   printf("File received: %s\n", filename);
 
   close(new_fd);
+  close(sockfd);
   fclose(ft);
 }
 
