@@ -369,4 +369,6 @@ int main(int argc, char *argv[])
       wait(&status);
     }
   }
+
+  return 0;
 }
