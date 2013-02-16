@@ -42,5 +42,7 @@ Alternatives:
 
 A great (more robust) program that uses polling: http://www.fefe.de/ncp/
 
+Another great approach, requires knowing name of sent file: https://www.udpcast.linux.lu/cmdlinedoc.html
+
 Quick file distribution challenge: http://www.advogato.org/article/555.html
 
