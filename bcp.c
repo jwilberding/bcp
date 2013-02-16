@@ -172,6 +172,7 @@ void server(int port)
   char filename[96];
   int filename_size;
   FILE *ft;
+  int total;
 
   memset(&hints, 0, sizeof hints);
   hints.ai_family = AF_UNSPEC;
@@ -256,11 +257,14 @@ void server(int port)
     exit(1);
   }
 
+  total = 0;
   while((numbytes = recv(new_fd, buf, MAXBUFLEN, 0)) > 0) {
+    total += numbytes;
+    printf("\rReceive: %d", total);
     fwrite(&buf, 1, numbytes, ft);
   }
 
-  printf("File received: %s\n", filename);
+  printf("\nFile received: %s\n", filename);
 
   close(new_fd);
   close(sockfd);
@@ -277,6 +281,7 @@ void client(char *ip, int *port, char *filename)
   int size;
   FILE *ft;
   int filename_size;
+  int total;
 
   memset(&hints, 0, sizeof hints);
   hints.ai_family = AF_UNSPEC;
@@ -333,14 +338,18 @@ void client(char *ip, int *port, char *filename)
   if (send(sockfd, buf, sizeof(int)+strlen(filename), 0) == -1)
     perror("send");
 
+  total = 0;
   while (!feof(ft)) {
     size = fread(&buf, 1, 100, ft);
+    total += size;
+
+    printf("\rSent: %d", total);
 
     if (send(sockfd, buf, size, 0) == -1)
       perror("send");
   }
 
-  printf("File sent.\n");
+  printf("\nFile sent.\n");
 
   close(sockfd);
   fclose(ft);
