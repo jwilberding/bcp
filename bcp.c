@@ -14,6 +14,7 @@
 #include <netdb.h>
 #include <sys/wait.h>
 #include <signal.h>
+#include <sys/stat.h>
 
 #define BROADCAST_PORT 4950   // default udp port
 #define BCP_CODE 3141593      // have a unique code to verify broadcast
@@ -21,6 +22,12 @@
 #define BACKLOG 10            // how many pending connections queue will hold
 #define MAXBUFLEN 1024        // buffer size for packets
 #define MAXNAMELEN 255        // max filename length
+
+int file_exists (char *filename)
+{
+  struct stat buffer;
+  return (stat (filename, &buffer) == 0);
+}
 
 // get sockaddr, IPv4 or IPv6:
 void *get_in_addr(struct sockaddr *sa)
@@ -173,6 +180,7 @@ void server(int port)
   FILE *ft;
   size_t total;
   char port_s[100];
+  char overwrite;
 
   memset(&hints, 0, sizeof hints);
   hints.ai_family = AF_UNSPEC;
@@ -253,6 +261,17 @@ void server(int port)
 
   filename[filename_size] = '\0';
 
+  if (file_exists(filename)) {
+    printf("%s already exists. Overwrite? Y/n: ", filename);
+    scanf("%c", &overwrite);
+
+    if (overwrite == 'n') {
+      close(new_fd);
+      close(sockfd);
+      exit(0);
+    }
+  }
+
   ft = fopen (filename, "wb");
 
   if (ft == NULL) {
@@ -269,9 +288,10 @@ void server(int port)
 
   printf("\nFile received: %s\n", filename);
 
+  fclose(ft);
+
   close(new_fd);
   close(sockfd);
-  fclose(ft);
 }
 
 void client(char *ip, int *port, char *filename)
