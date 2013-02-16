@@ -28,6 +28,7 @@
 #include <sys/wait.h>
 #include <signal.h>
 #include <sys/stat.h>
+#include <libgen.h>
 
 #define BROADCAST_PORT 4950   // default udp port
 #define BCP_CODE 3141593      // have a unique code to verify broadcast
@@ -319,6 +320,7 @@ void client(char *ip, int *port, char *path)
   int filename_size;
   size_t total;
   char port_s[100];
+  char path_s[MAXNAMELEN];
   char *filename;
 
   memset(&hints, 0, sizeof hints);
@@ -360,10 +362,7 @@ void client(char *ip, int *port, char *path)
   freeaddrinfo(servinfo);
 
   // if given a path, we just want the filename
-  filename = strrchr(path, '/')+1;
-
-  if (!filename)
-   filename = path;
+  filename = basename(strcpy(path_s, path));
 
   ft = fopen(path, "rb");
 
