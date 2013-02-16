@@ -13,18 +13,18 @@ gcc -D_FILE_OFFSET_BITS=64 -o bcp bcp.c
 
 # Usage
 
-	To make file availabe for copying:
+To make file availabe for copying:
 
-$ ./bcp filename
+	$ ./bcp filename
 
-	To receive the file:
+To receive the file:
 
-$ ./bcp
+	$ ./bcp
 
 
 # Example
 
-* Sender
+Sender
 
 	diginux@heisenberg:~/code/bcp/test$ ./bcp awesome.jpg
 	Listening for request..
@@ -32,7 +32,7 @@ $ ./bcp
 	Sent 107545
 	File sent.
 
-* Recipient
+Recipient
 
 	Jordans-MacBook-Pro:bcp diginux$ ./bcp
 	Requesting file..
