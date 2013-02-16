@@ -1,5 +1,5 @@
 /*
-** bcp.c -- broadcast copy -- Jordan Wilberding -- (C) 2012
+** bcp.c -- broadcast copy -- Jordan Wilberding -- (C) 2012-2013
 */
 
 #include <stdio.h>
@@ -19,7 +19,8 @@
 #define BCP_CODE 3141593      // have a unique code to verify broadcast
 #define BCP_TCP_PORT 10789    // default tcp port
 #define BACKLOG 10            // how many pending connections queue will hold
-#define MAXBUFLEN 100         // buffer size for packets
+#define MAXBUFLEN 1024        // buffer size for packets
+#define MAXNAMELEN 255        // max filename length
 
 // get sockaddr, IPv4 or IPv6:
 void *get_in_addr(struct sockaddr *sa)
@@ -41,14 +42,13 @@ void listener(char *ip, int *port)
   char buf[MAXBUFLEN];
   socklen_t addr_len;
   int packet[2];
+  char port_s[100];
 
   memset(&hints, 0, sizeof hints);
-  hints.ai_family = AF_UNSPEC; // set to AF_INET to force IPv4
+  hints.ai_family = AF_UNSPEC;
   hints.ai_socktype = SOCK_DGRAM;
-  hints.ai_flags = AI_PASSIVE; // use my IP
+  hints.ai_flags = AI_PASSIVE;
 
-  // todo: don't be dumb about this..
-  char port_s[100];
   snprintf(port_s, 100, "%d", BROADCAST_PORT);
 
   if ((rv = getaddrinfo(NULL, port_s, &hints, &servinfo)) != 0) {
@@ -111,11 +111,10 @@ void listener(char *ip, int *port)
 void broadcaster()
 {
   int sockfd;
-  struct sockaddr_in their_addr; // connector's address information
+  struct sockaddr_in their_addr;
   struct hostent *he;
   int numbytes;
   int broadcast = 1;
-  //char broadcast = '1'; // if that doesn't work, try this
 
   if ((he=gethostbyname("255.255.255.255")) == NULL) {  // get the host info
     perror("gethostbyname");
@@ -159,28 +158,27 @@ void sigchld_handler(int s)
 
 void server(int port)
 {
-  int sockfd, new_fd;  // listen on sock_fd, new connection on new_fd
+  int sockfd, new_fd;
   struct addrinfo hints, *servinfo, *p;
-  struct sockaddr_storage their_addr; // connector's address information
+  struct sockaddr_storage their_addr;
   socklen_t sin_size;
   struct sigaction sa;
   int yes=1;
   char s[INET6_ADDRSTRLEN];
   int rv;
   int numbytes;
-  char buf[100];
-  char filename[96];
+  char buf[MAXBUFLEN];
+  char filename[MAXNAMELEN];
   int filename_size;
   FILE *ft;
-  int total;
+  size_t total;
+  char port_s[100];
 
   memset(&hints, 0, sizeof hints);
   hints.ai_family = AF_UNSPEC;
   hints.ai_socktype = SOCK_STREAM;
-  hints.ai_flags = AI_PASSIVE; // use my IP
+  hints.ai_flags = AI_PASSIVE;
 
-  // todo: don't be dumb about this..
-  char port_s[100];
   snprintf(port_s, 100, "%d", port);
 
   if ((rv = getaddrinfo(NULL, port_s, &hints, &servinfo)) != 0) {
@@ -216,14 +214,14 @@ void server(int port)
     exit(2);
   }
 
-  freeaddrinfo(servinfo); // all done with this structure
+  freeaddrinfo(servinfo);
 
   if (listen(sockfd, BACKLOG) == -1) {
     perror("listen");
     exit(1);
   }
 
-  sa.sa_handler = sigchld_handler; // reap all dead processes
+  sa.sa_handler = sigchld_handler;
   sigemptyset(&sa.sa_mask);
   sa.sa_flags = SA_RESTART;
   if (sigaction(SIGCHLD, &sa, NULL) == -1) {
@@ -244,6 +242,11 @@ void server(int port)
 
   numbytes = recv(new_fd, buf, MAXBUFLEN, 0);
 
+  if (!numbytes) {
+    printf("Zero bytes received, exiting.\n");
+    exit(1);
+  }
+
   filename_size = 0;
   memcpy(&filename_size, buf, sizeof(int));
   memcpy(filename, &buf[sizeof(int)], filename_size);
@@ -253,14 +256,14 @@ void server(int port)
   ft = fopen (filename, "wb");
 
   if (ft == NULL) {
-    printf("Cannon open file: %s\n", filename);
+    perror("Cannon open file");
     exit(1);
   }
 
   total = 0;
   while((numbytes = recv(new_fd, buf, MAXBUFLEN, 0)) > 0) {
     total += numbytes;
-    printf("\rReceive: %d", total);
+    printf("\rReceive: %zu", total);
     fwrite(&buf, 1, numbytes, ft);
   }
 
@@ -281,14 +284,13 @@ void client(char *ip, int *port, char *filename)
   int size;
   FILE *ft;
   int filename_size;
-  int total;
+  size_t total;
+  char port_s[100];
 
   memset(&hints, 0, sizeof hints);
   hints.ai_family = AF_UNSPEC;
   hints.ai_socktype = SOCK_STREAM;
 
-  // todo: don't be dumb about this..
-  char port_s[100];
   snprintf(port_s, 100, "%d", *port);
 
   if ((rv = getaddrinfo(ip, port_s, &hints, &servinfo)) != 0) {
@@ -326,7 +328,7 @@ void client(char *ip, int *port, char *filename)
   ft = fopen(filename, "rb");
 
   if (ft == NULL) {
-    printf("Cannon open file: %s\n", filename);
+    perror("Cannot open file");
     exit(1);
   }
 
@@ -343,7 +345,7 @@ void client(char *ip, int *port, char *filename)
     size = fread(&buf, 1, 100, ft);
     total += size;
 
-    printf("\rSent: %d", total);
+    printf("\rSent: %zu", total);
 
     if (send(sockfd, buf, size, 0) == -1)
       perror("send");
