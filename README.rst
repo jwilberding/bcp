@@ -3,6 +3,7 @@ Broadcast Copy
 
 Any easy way to copy files between terminals or computers on a local network.
 
+Note: bcp currently assumes a trusted network, use with caution
 
 Compiling
 ---------
@@ -29,10 +30,17 @@ Sending file to: 192.168.2.12:10789
 Sent 107545
 File sent.
 
-Jordans-MacBook-Pro:bcp diginux$ ./bcp 
+Jordans-MacBook-Pro:bcp diginux$ ./bcp
 Requesting file..
 Incoming connection from: 192.168.2.12
 Receive: 107545
 File received: awesome.jpg
 
+
+Alternatives:
+-------------
+
+A great (more robust) program that uses polling: http://www.fefe.de/ncp/
+
+Quick file distribution challenge: http://www.advogato.org/article/555.html
 

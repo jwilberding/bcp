@@ -342,7 +342,7 @@ void client(char *ip, int *port, char *filename)
 
   total = 0;
   while (!feof(ft)) {
-    size = fread(&buf, 1, 100, ft);
+    size = fread(&buf, 1, MAXBUFLEN, ft);
     total += size;
 
     printf("\rSent: %zu", total);
