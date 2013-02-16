@@ -294,7 +294,7 @@ void server(int port)
   close(sockfd);
 }
 
-void client(char *ip, int *port, char *filename)
+void client(char *ip, int *port, char *path)
 {
   int sockfd;//, numbytes;
   char buf[MAXBUFLEN];
@@ -306,6 +306,7 @@ void client(char *ip, int *port, char *filename)
   int filename_size;
   size_t total;
   char port_s[100];
+  char *filename;
 
   memset(&hints, 0, sizeof hints);
   hints.ai_family = AF_UNSPEC;
@@ -343,9 +344,15 @@ void client(char *ip, int *port, char *filename)
   inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr),
             s, sizeof s);
 
-  freeaddrinfo(servinfo); // all done with this structure
+  freeaddrinfo(servinfo);
 
-  ft = fopen(filename, "rb");
+  // if given a path, we just want the filename
+  filename = strrchr(path, '/')+1;
+
+  if (!filename)
+   filename = path;
+
+  ft = fopen(path, "rb");
 
   if (ft == NULL) {
     perror("Cannot open file");
