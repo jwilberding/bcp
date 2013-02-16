@@ -308,7 +308,7 @@ void server(int port)
   close(sockfd);
 }
 
-void client(char *ip, int *port, const char *path)
+void client(char *ip, int *port, char *path)
 {
   int sockfd;//, numbytes;
   char buf[MAXBUFLEN];
@@ -360,15 +360,14 @@ void client(char *ip, int *port, const char *path)
 
   freeaddrinfo(servinfo);
 
-  filename = (char *)path;
-  filename = basename(filename);
-
   ft = fopen(path, "rb");
 
   if (ft == NULL) {
     perror("Cannot open file");
     exit(1);
   }
+
+  filename = basename(path);
 
   filename_size =  strlen(filename);
 
