@@ -4,25 +4,20 @@ Broadcast Copy
 Any easy way to copy files between terminals or computers on a local network.
 
 
-----
-
-
-
-
 Compiling
 ---------
 
-gcc -o bcp bcp.c
+make
+or
+gcc -D_FILE_OFFSET_BITS=64 -o bcp bcp.c
 
 
 Usage
 -----
 
-To take file availabe for copying: ./bcp filename
+To make file availabe for copying: ./bcp filename
 
 To receive the file: ./bcp
-
-
 
 
 Example
@@ -38,10 +33,3 @@ Requesting file..
 Incoming connection from: 192.168.2.12
 File received: awesome.jpg
 
-
-
-Future Work
------------
-
--Verify with hashes
--Punch through NATs
