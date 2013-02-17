@@ -177,6 +177,15 @@ void sigchld_handler(int s)
   while(waitpid(-1, NULL, WNOHANG) > 0);
 }
 
+ssize_t recv_full(int fd, void *buf, ssize_t len)
+{
+  char *p = buf;
+  ssize_t recvd;
+  for (recvd = 1; len > 0 && recvd > 0; len -= recvd, p += recvd)
+    recvd = recv(fd, p, len, 0);
+  return p - (char *)buf;
+}
+
 void server(int port)
 {
   int sockfd, new_fd;
@@ -190,7 +199,7 @@ void server(int port)
   int numbytes;
   char buf[MAXBUFLEN];
   char filename[MAXNAMELEN];
-  int filename_size;
+  uint32_t filename_size;
   FILE *ft;
   size_t total;
   char port_s[100];
@@ -262,18 +271,21 @@ void server(int port)
             s, sizeof s);
   printf("Incoming connection from: %s\n", s);
 
-  numbytes = recv(new_fd, buf, MAXBUFLEN, 0);
+  numbytes = recv_full(new_fd, &filename_size, sizeof(filename_size));
+  filename_size = ntohl(filename_size);
 
-  if (!numbytes) {
-    printf("Zero bytes received, exiting.\n");
+  if (numbytes < sizeof(filename_size)) {
+    printf("Protocol error, exiting.\n");
     exit(1);
   }
 
-  filename_size = 0;
-  memcpy(&filename_size, buf, sizeof(int));
-  memcpy(filename, &buf[sizeof(int)], filename_size);
-
+  numbytes = recv_full(new_fd, filename, filename_size);
   filename[filename_size] = '\0';
+
+  if (numbytes < filename_size) {
+    printf("Protocol error, exiting.\n");
+    exit(1);
+  }
 
   if (file_exists(filename)) {
     printf("%s already exists. Overwrite? Y/n: ", filename);
@@ -317,7 +329,7 @@ void client(char *ip, int *port, char *path)
   char s[INET6_ADDRSTRLEN];
   int size;
   FILE *ft;
-  int filename_size;
+  uint32_t filename_size;
   size_t total;
   char port_s[100];
   char *filename;
@@ -368,11 +380,11 @@ void client(char *ip, int *port, char *path)
   }
 
   filename = basename(path);
+  filename_size = strlen(filename);
+  filename_size = htonl(filename_size);
 
-  filename_size =  strlen(filename);
-
-  memcpy(buf, &filename_size, sizeof(int));
-  memcpy(&buf[sizeof(int)], filename, strlen(filename));
+  memcpy(buf, &filename_size, sizeof(filename_size));
+  memcpy(&buf[sizeof(filename_size)], filename, strlen(filename));
 
   if (send(sockfd, buf, sizeof(int)+strlen(filename), 0) == -1)
     perror("send");
