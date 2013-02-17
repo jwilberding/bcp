@@ -62,7 +62,7 @@ void listener(char *ip, int *port)
   struct sockaddr_storage their_addr;
   char buf[MAXBUFLEN];
   socklen_t addr_len;
-  int packet[2];
+  uint32_t packet[2];
   char port_s[100];
 
   memset(&hints, 0, sizeof hints);
@@ -111,7 +111,7 @@ void listener(char *ip, int *port)
       perror("recvfrom");
       exit(1);
     }
-    else if (numbytes == 8) {
+    else if (numbytes == sizeof(packet)) {
       //"listener: got packet from %s\n",
              inet_ntop(their_addr.ss_family,
                        get_in_addr((struct sockaddr *)&their_addr),
@@ -119,8 +119,8 @@ void listener(char *ip, int *port)
 
       memcpy(&packet, buf, sizeof(packet));
 
-      if (packet[0] == BCP_CODE) {
-        *port = packet[1];
+      if (ntohl(packet[0]) == BCP_CODE) {
+        *port = ntohl(packet[1]);
         done = 1;
       }
     }
@@ -159,9 +159,9 @@ void broadcaster()
   their_addr.sin_addr = *((struct in_addr *)he->h_addr);
   memset(their_addr.sin_zero, '\0', sizeof their_addr.sin_zero);
 
-  int packet[2];
-  packet[0] = BCP_CODE;
-  packet[1] = BCP_TCP_PORT;
+  uint32_t packet[2];
+  packet[0] = htonl((uint32_t)BCP_CODE);
+  packet[1] = htonl((uint32_t)BCP_TCP_PORT);
 
   if ((numbytes=sendto(sockfd, &packet, sizeof(packet), 0,
                        (struct sockaddr *)&their_addr, sizeof their_addr)) == -1) {
