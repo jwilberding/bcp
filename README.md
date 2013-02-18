@@ -40,6 +40,46 @@ Recipient
 	Receive: 107545
 	File received: awesome.jpg
 
+# Useful bash commands
+
+bcpdir: to send directories
+
+	# zip directory to /tmp and bcp it
+	bcpdir() {
+
+		curr_time=`date +%s`
+		file=/tmp/files_$curr_time.zip
+
+		if [[ -d $1 ]]; then
+
+			# dir	
+			cd $1
+			zip -r -9 $2 $file .
+
+		elif [[ -f $1 ]]; then
+	
+			# single file
+			file_dir=`dirname $1`
+			file_name=`basename $1`
+			cd $file_dir
+			zip -r -9 $2 $file $file_name
+
+		else
+			echo "$1 is not valid!"
+			exit 1	
+		fi
+
+		bcp $file
+		rm $file
+		cd -
+	}
+
+bcppass: to send files/directories protected with password
+
+	# zip file/directory with password to /tmp and bcp it
+	bcppass() {
+		bcpdir $1 -e
+	}
 
 # Alternatives:
 
