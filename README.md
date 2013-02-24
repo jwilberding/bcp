@@ -10,6 +10,11 @@ make
 or
 gcc -D_FILE_OFFSET_BITS=64 -o bcp bcp.c
 
+# Installation
+
+```
+$ make install
+```
 
 # Usage
 
