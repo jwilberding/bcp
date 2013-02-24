@@ -10,6 +10,16 @@ make
 or
 gcc -D_FILE_OFFSET_BITS=64 -o bcp bcp.c
 
+# Installation
+
+```
+$ make install
+```
+
+ One line install:
+```
+$ bash -c "mkdir /tmp/bcp && cd /tmp/bcp && curl -L# https://github.com/jgallen23/bcp/archive/master.tar.gz | tar zx --strip 1 && make install"
+```
 
 # Usage
 
