@@ -21,6 +21,8 @@ $ make install
 $ bash -c "mkdir /tmp/bcp && cd /tmp/bcp && curl -L# https://github.com/jgallen23/bcp/archive/master.tar.gz | tar zx --strip 1 && make install"
 ```
 
+In OSX, you can use @gil's homebrew solution: https://github.com/gil/homebrew-bcp
+
 # Usage
 
 To make file availabe for copying:
