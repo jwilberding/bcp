@@ -13,6 +13,8 @@
 
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+  See the folder LICENSE in the root folder of the project for more information.
 */
 
 #include <stdio.h>
