@@ -25,7 +25,7 @@ In OSX, you can use @gil's homebrew solution: https://github.com/gil/homebrew-bc
 
 # Usage
 
-To make file availabe for copying:
+To make file available for copying:
 
 	$ ./bcp filename
 
